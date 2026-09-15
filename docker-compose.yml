@@ -1,9 +1,4 @@
-version: "3.8"
 
-# Single-container local dev environment. Ships PySpark + Delta Lake via a
-# Jupyter base image so you get an interactive notebook (localhost:8888) AND
-# a shell to run the pipeline scripts directly -- no cluster to provision,
-# no Azure account required to get started.
 services:
   spark:
     image: jupyter/pyspark-notebook:latest
@@ -30,7 +25,7 @@ services:
       - ./:/app
     command: >
       bash -c "pip install --quiet -r api/requirements.txt &&
-               uvicorn api.main:app --host 0.0.0.0 --port 8000"
+               uvicorn api.main:app --host 0.0.0.0 --port 8001"
 
   frontend:
     image: node:20-slim
@@ -41,6 +36,6 @@ services:
     volumes:
       - ./frontend:/app/frontend
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000/api
+      - VITE_API_BASE_URL=http://localhost:8001/api
     command: >
       bash -c "npm install && npm run dev -- --host 0.0.0.0"

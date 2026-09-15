@@ -1,19 +1,3 @@
-"""
-FastAPI backend serving the Gold-layer aggregate (daily revenue by zone)
-to the Vue.js dashboard.
-
-Deliberately reads the flat CSV export that src/gold/aggregate.py writes
-(data/lake/exports/daily_zone_revenue.csv) rather than talking to Spark
-directly -- an API layer should be cheap to run and shouldn't need a Spark
-cluster alive just to serve a dashboard. In production this would read
-from the Gold Delta table via a lightweight query engine (e.g. DuckDB
-against Delta, or a serving layer like Databricks SQL) instead of a CSV,
-but the API contract below would stay the same.
-
-Run:
-    uvicorn api.main:app --reload --port 8000
-"""
-
 import os
 from datetime import date
 from functools import lru_cache

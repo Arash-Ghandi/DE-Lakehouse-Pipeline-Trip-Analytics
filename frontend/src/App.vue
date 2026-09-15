@@ -8,8 +8,8 @@
     <div v-if="error" class="error-box">
       {{ error }}
       <div class="error-hint">
-        Läuft die API? <code>uvicorn api.main:app --reload --port 8000</code><br />
-        Wurde die Pipeline bereits ausgeführt? Siehe README &ndash; Bronze &rarr; Silver &rarr; Gold.
+        Is the API running? <code>uvicorn api.main:app --reload --port 8001</code><br />
+        Has the pipeline been run yet? See README &ndash; Bronze &rarr; Silver &rarr; Gold.
       </div>
     </div>
 
@@ -20,21 +20,21 @@
       </div>
 
       <section class="kpi-row" v-if="summary">
-        <KpiCard label="Fahrten gesamt" :value="summary.total_trips.toLocaleString('de-DE')" />
-        <KpiCard label="Umsatz gesamt" :value="formatCurrency(summary.total_revenue)" />
-        <KpiCard label="Trinkgeld gesamt" :value="formatCurrency(summary.total_tips)" />
-        <KpiCard label="Ø Fahrtdauer" :value="summary.avg_trip_duration_minutes + ' min'" />
-        <KpiCard label="Zeitraum" :value="`${summary.date_range_start} \u2013 ${summary.date_range_end}`" />
+        <KpiCard label="Total Trips" :value="summary.total_trips.toLocaleString('en-US')" />
+        <KpiCard label="Total Revenue" :value="formatCurrency(summary.total_revenue)" />
+        <KpiCard label="Total Tips" :value="formatCurrency(summary.total_tips)" />
+        <KpiCard label="Avg. Trip Duration" :value="summary.avg_trip_duration_minutes + ' min'" />
+        <KpiCard label="Date Range" :value="`${summary.date_range_start} \u2013 ${summary.date_range_end}`" />
       </section>
 
       <section class="chart-grid">
 
         <div class="chart-card">
-          <h2>Täglicher Umsatz</h2>
+          <h2>Daily Revenue</h2>
           <DailyRevenueChart :rows="dailyRevenue" />
         </div>
         <div class="chart-card">
-          <h2>Umsatz nach Zone</h2>
+          <h2>Revenue by Zone</h2>
           <RevenueByZoneChart :rows="revenueByZone" />
         </div>
       </section>
@@ -58,7 +58,7 @@ const revenueByZone = ref([]);
 const error = ref("");
 
 function formatCurrency(v) {
-  return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(v);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR" }).format(v);
 }
 
 async function loadAll() {
@@ -75,7 +75,7 @@ async function loadAll() {
     revenueByZone.value = byZone;
   } catch (e) {
     error.value =
-      e.response?.data?.detail || "Verbindung zur API fehlgeschlagen.";
+      e.response?.data?.detail || "Failed to connect to the API.";
   }
 }
 
@@ -83,7 +83,7 @@ onMounted(async () => {
   try {
     zones.value = await api.getZones();
   } catch (e) {
-    error.value = e.response?.data?.detail || "Verbindung zur API fehlgeschlagen.";
+    error.value = e.response?.data?.detail || "Failed to connect to the API.";
     return;
   }
   await loadAll();
