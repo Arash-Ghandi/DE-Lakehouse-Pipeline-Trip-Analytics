@@ -1,11 +1,3 @@
-"""
-Unit tests for the Silver-layer cleaning logic.
-
-Runs against a tiny in-memory Spark DataFrame -- no real data lake, no
-cloud account, no dependency on prior pipeline steps. This is exactly
-what runs in CI on every push (see .github/workflows/ci.yml).
-"""
-
 import sys
 import os
 

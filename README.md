@@ -84,10 +84,52 @@ lakehouse-pipeline/
 └── requirements.txt
 ```
 
-## Quickstart (local, no cloud account needed)
+## Clone the repo
+```bash
+git clone https://github.com/Arash-Ghandi/DE-Lakehouse-Pipeline-Trip-Analytics.git
+cd DE-Lakehouse-Pipeline-Trip-Analytics
+
+```
+## Start container
 
 ```bash
-docker compose up
+docker-compose up -d
+
+```
+## Run the pipeline (Bronze → Silver → Gold)
+
+```bash
+docker exec -it lakehouse-pipeline bash -c "
+  cd /home/jovyan/work &&
+  python src/ingestion/generate_sample_data.py --rows 50000 --out data/raw &&
+  python src/bronze/ingest_to_bronze.py &&
+  python src/silver/clean_transform.py &&
+  python src/gold/aggregate.py
+"
+
+```
+## Quickstart (Local — no Docker)
+
+```bash
+# Install Python dependencies
+pip install -r requirements.txt
+
+# 1. Generate synthetic data
+python src/ingestion/generate_sample_data.py --rows 50000 --out data/raw
+
+# 2. Run the pipeline
+python src/bronze/ingest_to_bronze.py
+python src/silver/clean_transform.py
+python src/gold/aggregate.py
+
+# Terminal 1 — API (http://localhost:8001)
+pip install -r api/requirements.txt
+uvicorn api.main:app --reload --port 8001
+
+# Terminal 2 — Dashboard (http://localhost:5173)
+cd frontend
+npm install
+npm run dev
 ```
 
 This starts a Jupyter/PySpark container at `http://localhost:8888`. From a
@@ -140,29 +182,14 @@ Tests run against a local, in-memory Spark session and don't touch the data
 lake — they validate the cleaning/validation rules in isolation (see
 `tests/test_transformations.py`).
 
-## Running on Azure Databricks + ADLS Gen2
+## All services
 
-The pipeline code is storage-agnostic. To point it at Azure instead of
-local disk:
+| Service   | URL                              | Description              |
+|-----------|----------------------------------|--------------------------|
+| Jupyter   | http://localhost:8888            | PySpark notebook         |
+| API       | http://localhost:8001/docs       | FastAPI + Swagger UI     |
+| Dashboard | http://localhost:5173            | Vue.js 3 dashboard       |
 
-1. Set `storage.mode: azure` in `config/config.yaml` and fill in your
-   storage account/container.
-2. Set environment variables (or Databricks secret scope):
-   `AZURE_STORAGE_ACCOUNT`, `AZURE_STORAGE_KEY`.
-3. Run the same three scripts — on a Databricks cluster, as a Databricks
-   Job, or via `spark-submit` — no code changes needed.
-
-For production, `src/bronze/ingest_to_bronze.py` would be swapped to pull
-from the real source system (API, queue, or the public NYC TLC dataset)
-instead of `generate_sample_data.py`; everything downstream is unaffected
-since it only depends on the raw CSV schema.
-
-## Roadmap
-
-- [ ] Orchestrate with Databricks Workflows / Airflow instead of manual script order
-- [ ] Add Great Expectations for declarative data-quality checks in Silver
-- [ ] Partition pruning + Z-ordering on the Gold table for query performance
-- [ ] Cost-monitoring notes for the Azure deployment
 
 ## License
 
