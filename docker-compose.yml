@@ -1,0 +1,46 @@
+version: "3.8"
+
+# Single-container local dev environment. Ships PySpark + Delta Lake via a
+# Jupyter base image so you get an interactive notebook (localhost:8888) AND
+# a shell to run the pipeline scripts directly -- no cluster to provision,
+# no Azure account required to get started.
+services:
+  spark:
+    image: jupyter/pyspark-notebook:latest
+    container_name: lakehouse-pipeline
+    ports:
+      - "8888:8888" # Jupyter
+      - "4040:4040" # Spark UI
+    volumes:
+      - ./:/home/jovyan/work
+    working_dir: /home/jovyan/work
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+    command: >
+      bash -c "pip install --quiet -r requirements.txt &&
+               start-notebook.sh --NotebookApp.token=''"
+
+  api:
+    image: python:3.11-slim
+    container_name: lakehouse-api
+    working_dir: /app
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./:/app
+    command: >
+      bash -c "pip install --quiet -r api/requirements.txt &&
+               uvicorn api.main:app --host 0.0.0.0 --port 8000"
+
+  frontend:
+    image: node:20-slim
+    container_name: lakehouse-frontend
+    working_dir: /app/frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000/api
+    command: >
+      bash -c "npm install && npm run dev -- --host 0.0.0.0"

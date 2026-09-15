@@ -1,0 +1,28 @@
+# Central configuration for the pipeline.
+# STORAGE_MODE controls where Bronze/Silver/Gold tables are written:
+#   - "local"  -> writes to ./data/lake (default, no cloud account needed)
+#   - "azure"  -> writes to Azure Data Lake Storage Gen2 (abfss://...)
+#                 requires AZURE_STORAGE_ACCOUNT / AZURE_STORAGE_KEY env vars
+storage:
+  mode: local
+  local:
+    base_path: "./data/lake"
+  azure:
+    container: "lakehouse"
+    account_name: "${AZURE_STORAGE_ACCOUNT}"
+    # abfss://<container>@<account>.dfs.core.windows.net/
+
+raw_data:
+  path: "./data/raw"
+
+tables:
+  bronze: "trips_bronze"
+  silver: "trips_silver"
+  gold_daily_zone_revenue: "gold_daily_zone_revenue"
+
+pipeline:
+  # basic data-quality thresholds used by the Silver layer
+  min_fare_amount: 0.0
+  max_trip_distance_miles: 200
+  min_passenger_count: 1
+  max_passenger_count: 6
